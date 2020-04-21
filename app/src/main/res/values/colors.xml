@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
+    <color name="sw_back">#fff</color>
+    <color name="sw_off_t">#D81B60</color>
+    <color name="sw_on_b">#C6FFA4</color>
+    <color name="sw_on_t">#58FF00</color>
+    <color name="sw_off_b">#fff</color>
+</resources>

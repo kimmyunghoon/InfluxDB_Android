@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Influxd_Android_Project</string><!--추후 변경 예정-->
+    <string name="main_map_sw_tx">Sensor Location Map</string>
+    <string name="main_sensor1_sw_tx">Sensor1 Data Graph</string>
+    <string name="main_sensor2_sw_tx">Sensor2 Data Graph</string>
+    <string name="main_sensor3_sw_tx">Sensor3 Data Graph</string>
+
+</resources>

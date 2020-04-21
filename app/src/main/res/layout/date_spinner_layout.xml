@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Spinner
+    android:id="@+id/spinner"
+    android:layout_width="368dp"
+    android:layout_height="wrap_content"
+    app:layout_constraintLeft_toRightOf="parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <TextView
+        android:id="@+id/date_textview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="tmp" />
+</Spinner>

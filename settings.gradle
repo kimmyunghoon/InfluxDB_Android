@@ -1,0 +1,2 @@
+include ':app'
+rootProject.name='Influxd_Android_Project'
