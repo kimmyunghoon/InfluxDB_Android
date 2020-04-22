@@ -20,33 +20,33 @@ public class ContentsPagerAdapter extends FragmentStatePagerAdapter {
     private MainFragment main;
     private MapFragment map;
     private Sensor1GraphFragment s1gf;
-    private Sensor2GraphFragment s2gf;
-    private Sensor3GraphFragment s3gf;
+    private Sensor1GraphFragment s2gf;
+    private Sensor1GraphFragment s3gf;
     Context context;
     public ContentsPagerAdapter(FragmentManager fm, int pageCount, Context context) {
 
         super(fm);
         this.context =context;
         this.mPageCount = pageCount;
-        if(map==null)
+
         map =  new MapFragment(context);
 
-        if(s1gf==null) {
-            s1gf = new Sensor1GraphFragment(context);
 
-        }
-        if(s2gf==null)
-        s2gf =  new Sensor2GraphFragment(context);
-        if(s3gf==null)
-        s3gf =  new Sensor3GraphFragment(context);
-        if(main==null) {
+            s1gf = new Sensor1GraphFragment(context).setSensorDB_Info("test", "accelerometer", 2);
+
+
+
+        s2gf =  new Sensor1GraphFragment(context).setSensorDB_Info("test", "gyrometer", 3);
+
+        s3gf =  new Sensor1GraphFragment(context).setSensorDB_Info("test", "accelerometer", 2);
+
             main = new MainFragment(context).
                     setFragment(map).
-                    setFragment(s1gf).
-                    setFragment(s2gf).
-                    setFragment(s3gf);
+                    setFragment(s1gf,0).
+                    setFragment(s2gf,1).
+                    setFragment(s3gf,2);
 
-        }
+
     }
 
 

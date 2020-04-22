@@ -3,16 +3,24 @@ package com.example.admin.influxd_android_project.Activity;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.admin.influxd_android_project.Adapter.ContentsPagerAdapter;
+import com.example.admin.influxd_android_project.Adapter.CustomViewPager;
 import com.example.admin.influxd_android_project.Data.Influx_Java;
 import com.example.admin.influxd_android_project.R;
 import com.google.android.material.tabs.TabLayout;
@@ -27,14 +35,21 @@ import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
+
     private ViewPager mViewPager;
     private ContentsPagerAdapter mContentsPagerAdapter;
     private  int tabNum;
+    CustomViewPager cvp;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        //etRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         setContentView(R.layout.activity_main);
-        mViewPager = (ViewPager) findViewById(R.id.pager_content);
+        //mViewPager = (ViewPager) findViewById(R.id.pager_content);
 
         tabNum=0;
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout) ;
@@ -46,20 +61,27 @@ public class MainActivity extends AppCompatActivity {
 
         mContentsPagerAdapter = new ContentsPagerAdapter(
                 getSupportFragmentManager(), tabLayout.getTabCount(),this);
-        mViewPager.setAdapter(mContentsPagerAdapter);
-        mViewPager.addOnPageChangeListener(
-                new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
 
+//        mViewPager.setAdapter(mContentsPagerAdapter);
+//        mViewPager.addOnPageChangeListener(
+//                new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        cvp  =  findViewById(R.id.pager_content);
+
+        cvp.setAdapter(mContentsPagerAdapter);
+        cvp.setPagingEnabled(false);
+        cvp.addOnPageChangeListener(
+                new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 Log.d("test",tab.getPosition()+"");
                 tabNum = tab.getPosition();
 
-                mViewPager.postDelayed(new Runnable() {
+
+                cvp.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        mViewPager.setCurrentItem(tabNum);
+                        cvp.setCurrentItem(tabNum);
 //                        if(tabNum==1)
 //                        mContentsPagerAdapter.influxMap(true);
                     }
@@ -76,15 +98,16 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
+
     }
     @Override
     public void onResume() {
         super.onResume();
 
-        mViewPager.postDelayed(new Runnable() {
+        cvp.postDelayed(new Runnable() {
             @Override
             public void run() {
-                mViewPager.setCurrentItem(tabNum);
+                cvp.setCurrentItem(tabNum);
 
             }
         }, 100);

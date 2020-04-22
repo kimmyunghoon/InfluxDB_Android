@@ -41,6 +41,9 @@ public class InfluxdbToThread extends Thread{
     boolean breakStaus = false;
     View uiView;
     TextView progressText;
+    private String sensorDB_ = "";
+    private  String sensorTable_ = "";
+    private  int sensorIndex_=0;
     public InfluxdbToThread setContext(Context context){
       this.context = context;
         return this;
@@ -48,6 +51,12 @@ public class InfluxdbToThread extends Thread{
     public InfluxdbToThread setView(View uiView,int id){
         this.uiView = uiView;
         progressText=(TextView)uiView.findViewById(id);
+        return this;
+    }
+    public InfluxdbToThread setSensorDB_Info(String sensorDB_,String sensorTable_,int index){
+        this.sensorDB_ = sensorDB_;
+        this.sensorTable_=sensorTable_;
+        this.sensorIndex_=index;
         return this;
     }
     public InfluxdbToThread setDate(long startDate,long currentDate){
@@ -108,6 +117,7 @@ public class InfluxdbToThread extends Thread{
                             }
 
                             try {
+                               // Log.d(TAG,"time_period :"+time_period);
                                 Thread.sleep(time_period);
                                 time_delay_status=true;
                             } catch (InterruptedException e) {
@@ -142,7 +152,7 @@ public class InfluxdbToThread extends Thread{
                         @Override
                         public void run() {
                             // 내용
-
+                            if(progressText!=null)
                             progressText.setText("데이터 갱신중...");
                             //Toast.makeText(context,"데이터 갱신중...",Toast.LENGTH_SHORT).show();
 
@@ -157,6 +167,7 @@ public class InfluxdbToThread extends Thread{
                         @Override
                         public void run() {
                             // 내용
+                            if(progressText!=null)
                             progressText.setText("데이터 연결 확인");
                             //Toast.makeText(context,"데이터 갱신중...",Toast.LENGTH_SHORT).show();
 
@@ -169,7 +180,7 @@ public class InfluxdbToThread extends Thread{
 
             case "sensor1":
                 try {
-                    lnfluxSDBTmp = influxJava.getSensorData("test", "accelerometer", 2);
+                    lnfluxSDBTmp = influxJava.getSensorData(sensorDB_, sensorTable_, sensorIndex_);
                 }
                 catch (Exception e){
                     e.printStackTrace();
@@ -181,6 +192,7 @@ public class InfluxdbToThread extends Thread{
                         @Override
                         public void run() {
                             // 내용
+                            if(progressText!=null)
                             progressText.setText("데이터 갱신중...");
                             //Toast.makeText(context,"데이터 갱신중...",Toast.LENGTH_SHORT).show();
 
@@ -194,6 +206,7 @@ public class InfluxdbToThread extends Thread{
                         @Override
                         public void run() {
                             // 내용
+                            if(progressText!=null)
                             progressText.setText("데이터 연결 확인");
                             //Toast.makeText(context,"데이터 갱신중...",Toast.LENGTH_SHORT).show();
 
@@ -213,6 +226,7 @@ public class InfluxdbToThread extends Thread{
 
         }
     }
+
     HandlerThread handlerThread;
     public void init(){
 
@@ -289,4 +303,6 @@ public class InfluxdbToThread extends Thread{
     public void clearLocations() {
         lnfluxLocations.clear();
     }
+
+
 }

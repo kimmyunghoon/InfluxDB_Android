@@ -27,8 +27,8 @@ public class MainFragment extends Fragment {
     private boolean mapsw_isSelected=false;
     private MapFragment mapFragment;
     private Sensor1GraphFragment sensor1GraphFragment;
-    private Sensor2GraphFragment sensor2GraphFragment;
-    private Sensor3GraphFragment sensor3GraphFragment;
+    private Sensor1GraphFragment sensor2GraphFragment;
+    private Sensor1GraphFragment sensor3GraphFragment;
     public MainFragment(){
     }
 
@@ -39,18 +39,16 @@ public class MainFragment extends Fragment {
         mapFragment = fragment;
         return this;
     }
-    public MainFragment setFragment(Sensor1GraphFragment fragment){
+    public MainFragment setFragment(Sensor1GraphFragment fragment,int id){
+        if(id==0)
         sensor1GraphFragment = fragment;
+        if(id==1)
+            sensor2GraphFragment = fragment;
+        if(id==2)
+            sensor3GraphFragment = fragment;
         return this;
     }
-    public MainFragment setFragment(Sensor2GraphFragment fragment){
-        sensor2GraphFragment = fragment;
-        return this;
-    }
-    public MainFragment setFragment(Sensor3GraphFragment fragment){
-        sensor3GraphFragment = fragment;
-        return this;
-    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -74,8 +72,22 @@ public class MainFragment extends Fragment {
             sensor1Sw.setBackColorRes(R.color.sw_off_b);
             sensor1Sw.setThumbColorRes(R.color.sw_off_t);
         }
-
-
+        sensor2Sw = rootView.findViewById(R.id.sensor2_sw);
+        if (sensor2Sw.isChecked()) {
+            sensor2Sw.setBackColorRes(R.color.sw_on_b);
+            sensor2Sw.setThumbColorRes(R.color.sw_on_t);
+        } else {
+            sensor2Sw.setBackColorRes(R.color.sw_off_b);
+            sensor2Sw.setThumbColorRes(R.color.sw_off_t);
+        }
+        sensor3Sw = rootView.findViewById(R.id.sensor3_sw);
+        if (sensor3Sw.isChecked()) {
+            sensor3Sw.setBackColorRes(R.color.sw_on_b);
+            sensor3Sw.setThumbColorRes(R.color.sw_on_t);
+        } else {
+            sensor3Sw.setBackColorRes(R.color.sw_off_b);
+            sensor3Sw.setThumbColorRes(R.color.sw_off_t);
+        }
         mapSw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -106,6 +118,38 @@ public class MainFragment extends Fragment {
                     sensor1GraphFragment.EndDataThread();
                     sensor1Sw.setBackColorRes(R.color.sw_off_b);
                     sensor1Sw.setThumbColorRes(R.color.sw_off_t);
+                }
+            }
+        });
+        sensor2Sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    sensor2GraphFragment.setStatus(true);
+                    sensor2GraphFragment.StartDataThread();
+                    sensor2Sw.setBackColorRes(R.color.sw_on_b);
+                    sensor2Sw.setThumbColorRes(R.color.sw_on_t);
+                } else {
+                    sensor2GraphFragment.setStatus(false);
+                    sensor2GraphFragment.EndDataThread();
+                    sensor2Sw.setBackColorRes(R.color.sw_off_b);
+                    sensor2Sw.setThumbColorRes(R.color.sw_off_t);
+                }
+            }
+        });
+        sensor3Sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    sensor3GraphFragment.setStatus(true);
+                    sensor3GraphFragment.StartDataThread();
+                    sensor3Sw.setBackColorRes(R.color.sw_on_b);
+                    sensor3Sw.setThumbColorRes(R.color.sw_on_t);
+                } else {
+                    sensor3GraphFragment.setStatus(false);
+                    sensor3GraphFragment.EndDataThread();
+                    sensor3Sw.setBackColorRes(R.color.sw_off_b);
+                    sensor3Sw.setThumbColorRes(R.color.sw_off_t);
                 }
             }
         });

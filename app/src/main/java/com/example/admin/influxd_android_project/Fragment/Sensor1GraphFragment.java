@@ -3,12 +3,13 @@ package com.example.admin.influxd_android_project.Fragment;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Configuration;
 import android.graphics.Color;
-import android.hardware.Sensor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -37,9 +38,8 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.github.mikephil.charting.listener.ChartTouchListener;
+import com.github.mikephil.charting.listener.OnChartGestureListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -75,6 +75,9 @@ public class Sensor1GraphFragment extends Fragment {
     private int dataIndex = 0;
     private int updataIndex = 0;
     private int[] saveIndex = {0,0};
+    private String sensorDB_ = "";
+    private  String sensorTable_ = "";
+    private  int sensorIndex_=0;
     public Sensor1GraphFragment(){
     }
     public Sensor1GraphFragment(Context context) {
@@ -91,7 +94,12 @@ public class Sensor1GraphFragment extends Fragment {
          influxJava = new Influx_Java();
         setTimer();
     }
-
+    public Sensor1GraphFragment setSensorDB_Info(String sensorDB_,String sensorTable_,int index){
+        this.sensorDB_ = sensorDB_;
+        this.sensorTable_=sensorTable_;
+        this.sensorIndex_=index;
+        return this;
+    }
     @Override
     public void onResume() {
         super.onResume();
@@ -121,6 +129,7 @@ public class Sensor1GraphFragment extends Fragment {
                              Bundle savedInstanceState) {
         if(rootView==null)
          rootView = inflater.inflate(R.layout.fragment_sensor1, container, false);
+
         dataChart  = rootView.findViewById(R.id.sensor_chart1);
         date_refresh_text = rootView.findViewById(R.id.date_text_refresh);
         if(influxdbThread!=null)
@@ -149,15 +158,16 @@ public class Sensor1GraphFragment extends Fragment {
 
                         public void onClick(DialogInterface dialog, int id) {
                             if(saveIndex[0]!=dataIndex) {
-                                setDateItem(dateStr[dataIndex-1]);
+                                setDateItem(dateStr[dataIndex]);
                                 dataChart.clear();
                                 dataChart.notifyDataSetChanged(); // 차트에 데이터가 바뀌었다고 notify
                                 dataChart.invalidate(); // refresh
                                 saveIndex[0] =dataIndex;
                             }
                             if(saveIndex[1]!=updataIndex) {
-                                setUpDateItem(updateStr[updataIndex-1]);
-                                setTime_period(updateTime[updataIndex-1]);
+                                setUpDateItem(updateStr[updataIndex]);
+                                Log.d(TAG,updateTime[updataIndex]+"");
+                                setTime_period(updateTime[updataIndex]);
                                 saveIndex[1] =updataIndex;
                             }
 
@@ -187,6 +197,7 @@ public class Sensor1GraphFragment extends Fragment {
                                     chartUpdate(influxdbThread.getSensorDatas());
                                     influxdbThread.clearSensorDatas();
                                     date_refresh_text.setText(influxJava.dateToDate());
+                                  //  Log.d(TAG,"time_period : "+time_period);
                                 }
                                 else{
                                     date_refresh_text.setText(influxJava.dateToDate());
@@ -204,10 +215,14 @@ public class Sensor1GraphFragment extends Fragment {
                     }
                 }, 200, time_period);
     }
+
+
+
     public void StartDataThread(){
         if(influxdbThread==null){
         influxdbThread  = new InfluxdbToThread()
                 .setContext(context)
+                .setSensorDB_Info(sensorDB_, sensorTable_, sensorIndex_)
                 .setDataType("sensor1")
                 .setInfluxApi(influxJava);
         influxdbThread.init();
@@ -246,22 +261,39 @@ public class Sensor1GraphFragment extends Fragment {
         dataChart.invalidate(); // refresh
 
     }
+
+    int zoom_index = 100;
     private void chartUpdate(HashMap<Long,SensorDataBean> tmp){
         Set key = tmp.keySet();
-        chartDataArrX.clear();
-        chartDataArrY.clear();
-        chartDataArrZ.clear();
+
+//        chartDataArrX.clear();
+//        chartDataArrY.clear();
+//        chartDataArrZ.clear();
+        ArrayList<Long> tmpKeys = new ArrayList<>();
         for (Object value : key) {
             Long keyName = (Long) value;
+            tmpKeys.add(keyName);
+        }
+        //long [] tmpKeyss = new long[tmpKeys.size()];
+        Long[] tmpKeyss = tmpKeys.toArray(new Long[tmpKeys.size()]);
+        Arrays.sort(tmpKeyss);
+
+        for (Object value : tmpKeyss) {
+            Long keyName = (Long) value;
             SensorDataBean sdb  = tmp.get(keyName);
+            //Log.d(TAG,keyName+"");
             double []data = sdb.getData();
             chartDataArrX.add(new Entry(index,(float)data[0]));
             chartDataArrY.add(new Entry(index,(float)data[1]));
             chartDataArrZ.add(new Entry(index,(float)data[2]));
             index++;
         }
-        if(chartDataArrX.size()==0)
-            return;
+//        while(chartDataArrX.size()>50)
+//            chartDataArrX.remove(0);
+//        while(chartDataArrY.size()>50)
+//            chartDataArrY.remove(0);
+//        while(chartDataArrZ.size()>50)
+//            chartDataArrZ.remove(0);
        /*
        * 날짜에 다른 데이터 제거하는 부분 추가.
        *
@@ -277,43 +309,79 @@ public class Sensor1GraphFragment extends Fragment {
 //                chartDataArrZ.remove(cdIndex);
 //            }
 //        }
-
-        dataSets[0] = new LineDataSet(chartDataArrX,"X"); // 데어트, 범례
+      //  if(dataSets[0]==null)
+         dataSets[0] = new LineDataSet(chartDataArrX,"X"); // 데어트, 범례
+//        else{
+//            for(int i=0;i<chartDataArrX.size();i++)
+//            dataSets[0].addEntry(chartDataArrX.get(i));
+//        }
         dataSets[0].setAxisDependency(YAxis.AxisDependency.LEFT);
+        dataSets[0].setDrawCircles(false);
         //List<Integer> colors = new ArrayList<>(); // 색상지정
         /* 칼라 데이터 로직 */
         // dataSet.setColors(colors);
         dataSets[0].setValueTextColor(Color.BLACK);
         dataSets[0].setColors(Color.RED);
         dataSets[1] = new LineDataSet(chartDataArrY,"Y"); // 데어트, 범례
+
+//        if(dataSets[1]==null)
+//            dataSets[1] = new LineDataSet(chartDataArrY,"Y"); // 데어트, 범례
+//        else{
+//            for(int i=0;i<chartDataArrY.size();i++)
+//                dataSets[1].addEntry(chartDataArrY.get(i));
+//        }
         dataSets[1].setAxisDependency(YAxis.AxisDependency.LEFT);
+        dataSets[1].setDrawCircles(false);
         //List<Integer> colors = new ArrayList<>(); // 색상지정
         /* 칼라 데이터 로직 */
         // dataSet.setColors(colors);
         dataSets[1].setValueTextColor(Color.BLACK);
         dataSets[1].setColors(Color.BLUE);
         dataSets[2] = new LineDataSet(chartDataArrZ,"Z"); // 데어트, 범례
+
+//        if(dataSets[2]==null)
+//            dataSets[2] = new LineDataSet(chartDataArrZ,"Y"); // 데어트, 범례
+//        else{
+//            for(int i=0;i<chartDataArrZ.size();i++)
+//                dataSets[2].addEntry(chartDataArrZ.get(i));
+//        }
         dataSets[2].setAxisDependency(YAxis.AxisDependency.LEFT);
+        dataSets[2].setDrawCircles(false);
         //List<Integer> colors = new ArrayList<>(); // 색상지정
         /* 칼라 데이터 로직 */
         // dataSet.setColors(colors);
         dataSets[2].setValueTextColor(Color.BLACK);
         dataSets[2].setColors(Color.GRAY);
-        List<ILineDataSet> dataSets = new ArrayList<>();
-        dataSets.add(this.dataSets[0]);
-        dataSets.add(this.dataSets[1]);
-        dataSets.add(this.dataSets[2]);
-        LineData lineData = new LineData(dataSets);
-        dataChart.setData(lineData);
+
+        //if(dataChart.getLineData()==null) {
+            List<ILineDataSet> dataSets = new ArrayList<>();
+            dataSets.add(this.dataSets[0]);
+            dataSets.add(this.dataSets[1]);
+            dataSets.add(this.dataSets[2]);
+            LineData lineData = new LineData(dataSets);
+
+            dataChart.setData(lineData);
+       // }
+
+
         this.dataSets[0].notifyDataSetChanged(); // 데이터가 바뀌었다고 notify
         this.dataSets[1].notifyDataSetChanged(); // 데이터가 바뀌었다고 notify
         this.dataSets[2].notifyDataSetChanged(); // 데이터가 바뀌었다고 notify
+        dataChart.setVisibleXRangeMaximum(zoom_index); // allow 20 values to be displayed at once on the x-axis, not more
 
-        dataChart.notifyDataSetChanged(); // 차트에 데이터가 바뀌었다고 notify
+        dataChart.moveViewToX(dataChart.getData().getXMax());
+       // dataChart.enableScroll();
+       // dataChart.setDragDecelerationEnabled(true);
+        dataChart.setScrollBarStyle(View.SCROLLBARS_OUTSIDE_OVERLAY);
+        dataChart.setScrollBarSize(100);
+//        dataChart.animateX(3000, Easing.EasingOption.Linear);
+//        dataChart.getAnimation().
+        dataChart.setHorizontalScrollBarEnabled(true);
+       dataChart.notifyDataSetChanged(); // 차트에 데이터가 바뀌었다고 notify
         dataChart.invalidate(); // refresh
 
     }
-    SimpleDateFormat df = new SimpleDateFormat("yy-MM-dd HH:mm.ss");
+    SimpleDateFormat df = new SimpleDateFormat("yy-MM-dd");
     private void chartSetting(){
 //        for(int i=1 ; i<11 ; i++){
 //            if(i%2==0) chartDataArr.add(new Entry(i, i * 4));
@@ -330,10 +398,10 @@ public class Sensor1GraphFragment extends Fragment {
             @Override
             public String getFormattedValue(float value, AxisBase axis) {
                 String x;
-                if(value>100000)
+                    if(value>100000)
                 x = df.format(new Date((long)value));
                 else
-                    x=""+(int)value;
+                    x="Q"+(int)value;
                 return x;
             }
         };
@@ -341,32 +409,86 @@ public class Sensor1GraphFragment extends Fragment {
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM); // x축 위치 지정
         xAxis.setTextSize(10f); // 크기 지정
         xAxis.setTextColor(Color.RED); // 색 지정
+
         xAxis.setDrawLabels(true); // 라벨(x축 좌표)를 그릴지 결정
-        xAxis.setDrawAxisLine(false); // x축 라인을 그림 (라벨이 없을때 잘 됨)
+        xAxis.setDrawAxisLine(true); // x축 라인을 그림 (라벨이 없을때 잘 됨)
         xAxis.setDrawGridLines(false); // 내부 선 그을지 결정
-        xAxis.setLabelCount(3); // 라벨의 개수를 결정 => 나누어 떨어지는 개수로 지정
-        xAxis.setGranularity(100f); // minimum axis-step (interval) is 1
+        xAxis.setLabelCount(10); // 라벨의 개수를 결정 => 나누어 떨어지는 개수로 지정
+        //xAxis.setGranularity(1f); // minimum axis-step (interval) is 1
         xAxis.setValueFormatter(formatter);
         dataChart.setBackgroundColor(Color.WHITE); // 배경색 지정
+
         Description description = new Description();
         description.setText("");
         dataChart.setDescription(description);// 설명 정의(오른쪽 아래)
         dataChart.setBorderWidth(100);
+        dataChart.setOnChartGestureListener(new OnChartGestureListener() {
+            @Override
+            public void onChartGestureStart(MotionEvent motionEvent, ChartTouchListener.ChartGesture chartGesture) {
+               // Log.d(TAG,"onChartGestureStart");
+            }
+
+            @Override
+            public void onChartGestureEnd(MotionEvent motionEvent, ChartTouchListener.ChartGesture chartGesture) {
+              //  Log.d(TAG,"onChartGestureEnd");
+            }
+
+            @Override
+            public void onChartLongPressed(MotionEvent motionEvent) {
+                //Log.d(TAG,"onChartLongPressed");
+            }
+
+            @Override
+            public void onChartDoubleTapped(MotionEvent motionEvent) {
+                Log.d(TAG,"onChartDoubleTapped");
+//                zoom_index = zoom_index/2;
+//                if(zoom_index<10)
+//                    zoom_index=10;
+//                dataChart.setVisibleXRangeMaximum(zoom_index);
+//                dataChart.invalidate();
+            }
+
+            @Override
+            public void onChartSingleTapped(MotionEvent motionEvent) {
+               Log.d(TAG,"onChartSingleTapped");
+//                zoom_index = zoom_index*2;
+//                if(zoom_index>80)
+//                    zoom_index=80;
+//                dataChart.setVisibleXRangeMaximum(zoom_index);
+//                dataChart.invalidate();
+            }
+
+            @Override
+            public void onChartFling(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {
+              //  Log.d(TAG,"onChartFling");
+            }
+
+            @Override
+            public void onChartScale(MotionEvent motionEvent, float v, float v1) {
+               // Log.d(TAG,"onChartScale");
+            }
+
+            @Override
+            public void onChartTranslate(MotionEvent motionEvent, float v, float v1) {
+
+            }
+        });
 //        lineChart.setMaxVisibleValueCount(8);
 
 // touch
-        dataChart.setTouchEnabled(false);
+        dataChart.setTouchEnabled(true);
 // drag
-        dataChart.setDragEnabled(false);
+        dataChart.setDragEnabled(true);
 // scale
-        dataChart.setScaleEnabled(false);
-        dataChart.setScaleXEnabled(false);
+        dataChart.setScaleEnabled(true);
+        dataChart.setScaleXEnabled(true);
         dataChart.setScaleYEnabled(false);
 // pinchZoom
         dataChart.setPinchZoom(false);
+     //   dataChart.getViewPortHandler().setMaximumScaleX(2f);
 // double tap
-        dataChart.setDoubleTapToZoomEnabled(false);
-        dataChart.animateX(3000, Easing.EasingOption.Linear); // 속도, 애니메이션
+        dataChart.setDoubleTapToZoomEnabled(true);
+
 //        List<ILineDataSet> dataSets = new ArrayList<>();
 //        dataSets.add(dataSet);
 //

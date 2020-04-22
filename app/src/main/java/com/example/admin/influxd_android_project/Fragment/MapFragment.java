@@ -3,6 +3,7 @@ package com.example.admin.influxd_android_project.Fragment;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
@@ -95,6 +96,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private int dataIndex = 0;
     private int updataIndex = 0;
     private int[] saveIndex = {0,0};
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -113,9 +116,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         time_set.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 date_text.setText(influxJava.dateToDate());
-
-
                 dialog.show();
 
 
@@ -399,10 +401,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         this.status_map = status_map;
     }
     void setDateItem(String type){
+        if(influxJava!=null)
         influxJava.getDataPeriod(type);
     }
     void setUpDateItem(String type){
+        if(influxJava!=null)
         influxJava.getUpDataPeriod(type);
+        if(influxdbThread!=null)
         influxdbThread.getUpDataPeriod(type);
     }
 

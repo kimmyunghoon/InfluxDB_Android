@@ -36,7 +36,7 @@ public class Influx_Java {
      private  int time_period = 5;
      private  int notDataCount = 1;
      private  int notSensor1DataCount = 1;
-     SimpleDateFormat df = new SimpleDateFormat("yy-MM-dd HH:mm.ss");
+     SimpleDateFormat df = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
      private boolean isNotData = false;
      private boolean isSetData = true;
 //     static Influx_Java influx_Java;
@@ -71,14 +71,14 @@ public class Influx_Java {
                         QueryResult queryResult;
                         try {
                             if (setMapTime == 0) {
-                                Log.d(TAG, "탐색 실행");
+                             //   Log.d(TAG, "탐색 실행");
                                 setMapTime = (long) (Calendar.getInstance().getTime().getTime() * Math.pow(10, 6));
-                                Log.d(TAG, "SELECT * FROM geo where time>=" + (long) (setMapTime - period)+" / "+setMapTime+" / "+period);
+                             //   Log.d(TAG, "SELECT * FROM geo where time>=" + (long) (setMapTime - period)+" / "+setMapTime+" / "+period);
                                 queryResult = influxDB.query(new Query("SELECT * FROM geo WHERE time>=" + (setMapTime - period), databaseName, true));
                             } else {
-                                Log.d(TAG, "탐색 중");
+                            //    Log.d(TAG, "탐색 중");
                                 setMapTime = (long) (Calendar.getInstance().getTime().getTime() * Math.pow(10, 6));
-                                Log.d(TAG, "SELECT * FROM geo where time>=" + (long) (setMapTime - (long) 5 * 1E9));
+                             //   Log.d(TAG, "SELECT * FROM geo where time>=" + (long) (setMapTime - (long) 5 * 1E9));
                                 queryResult = influxDB.query(new Query("SELECT * FROM geo WHERE time>=" + (setMapTime - (long) (notDataCount * time_period * Math.pow(10, 9))), databaseName, true));
                             }
                             Log.d(TAG, df.format(new Date(Calendar.getInstance().getTime().getTime())) + " / " + notDataCount);
@@ -95,6 +95,13 @@ public class Influx_Java {
 
                 List<QueryResult.Result> tmpList = InfluxTaask.execute().get();
 
+
+            if(setMapTime==0){
+                date_str= df.format(new Date((long)((Calendar.getInstance().getTime().getTime() * Math.pow(10, 6) - period)/Math.pow(10, 6))))+
+                        " ~ "+df.format(new Date((long)(Calendar.getInstance().getTime().getTime() * Math.pow(10, 6)/Math.pow(10, 6))));
+            }
+            else
+              date_str= df.format(new Date((long)((setMapTime - period)/Math.pow(10, 6))))+" ~ "+df.format(new Date((long)(setMapTime/Math.pow(10, 6))));
 //            ArrayList<QueryResult> arrayList = new ArrayList<QueryResult>();
 //            arrayList.addAll(tmpList);
                 if (tmpList == null) {
@@ -137,12 +144,11 @@ public class Influx_Java {
         setMapTime=setMapTime2;
     }
 
+    String date_str="";
      public String dateToDate(){
-        if(setMapTime==0){
-            return df.format(new Date((long)((Calendar.getInstance().getTime().getTime() * Math.pow(10, 6) - period)/Math.pow(10, 6))))+
-                    " ~ "+df.format(new Date((long)(Calendar.getInstance().getTime().getTime() * Math.pow(10, 6)/Math.pow(10, 6))));
-        }
-        return df.format(new Date((long)((setMapTime - period)/Math.pow(10, 6))))+" ~ "+df.format(new Date((long)(setMapTime/Math.pow(10, 6))));
+         if(date_str.equals(""))
+             return "검색중";
+        return date_str;
     }
      private long period = (long)(3600*12*1E9);
 
@@ -199,7 +205,7 @@ public class Influx_Java {
             return period;
     }
 
-    public  HashMap<Long,SensorDataBean> getSensorData(String databasename, String sensor_table,int index) {
+    public  HashMap<Long,SensorDataBean> getSensorData(final String databasename, final String sensor_table,final int index) {
 
         if (isSetData) {
             isSetData=false;
@@ -231,7 +237,7 @@ public class Influx_Java {
                         isNotData = false;
                         notDataCount++;
                         isSetData = true;
-                        Log.d(TAG,"test2"+indexS);
+                       // Log.d(TAG,"test2"+indexS);
                         return null;
                     } else {
                         notDataCount = 0;
@@ -239,7 +245,7 @@ public class Influx_Java {
                     }
                     //Math.pow(10, 6)
                     formatS.setTimeZone(TimeZone.getTimeZone("UTC"));
-                    Log.d(TAG,tmpList.get(0).getSeries().get(0).getValues().toString()+"");
+                    //Log.d(TAG,tmpList.get(0).getSeries().get(0).getValues().toString()+"");
                     for (int i = 0; i < tmpList.get(0).getSeries().get(0).getValues().size(); i++) {
 
                         Date   date       = formatS.parse ( tmpList.get(0).getSeries().get(0).getValues().get(i).get(0).toString() );
@@ -261,7 +267,12 @@ public class Influx_Java {
                     }
                     isSetData = true;
                 }
-
+                if(setSensorTime1==0){
+                    date_str= df.format(new Date((long)((Calendar.getInstance().getTime().getTime() * Math.pow(10, 6) - period)/Math.pow(10, 6))))+
+                            " ~ "+df.format(new Date((long)(Calendar.getInstance().getTime().getTime() * Math.pow(10, 6)/Math.pow(10, 6))));
+                }
+                else
+                    date_str= df.format(new Date((long)((setSensorTime1 - period)/Math.pow(10, 6))))+" ~ "+df.format(new Date((long)(setSensorTime1/Math.pow(10, 6))));
                 return tmpHash;
             } catch(Exception e){
                 e.printStackTrace();
@@ -290,14 +301,14 @@ public class Influx_Java {
 
                 if(voids[0]==1) {//x
                     if (setSensorTime1 == 0) {
-                        Log.d(TAG, "탐색 실행");
+                      // Log.d(TAG, "탐색 실행"+time_period);
                         setSensorTime1 = (long) (voids[1]);
-                        Log.d(TAG, "SELECT time, value FROM device_frmpayload_data_" + sensor_table + "_" + index + "_x where time>=" + (long) (setSensorTime1 - period) + " / " + setSensorTime1 + " / " + period);
+                        //Log.d(TAG, "SELECT time, value FROM device_frmpayload_data_" + sensor_table + "_" + index + "_x where time>=" + (long) (setSensorTime1 - period) + " / " + setSensorTime1 + " / " + period);
                         queryResult = influxDB.query(new Query("SELECT time, value FROM device_frmpayload_data_" + sensor_table + "_" + index + "_x  where time>=" + (setSensorTime1 - period), databasename, true));
                     } else {
-                        Log.d(TAG, "탐색 중");
+                      // Log.d(TAG, "탐색 중"+time_period);
                         setSensorTime1 = (long) (voids[1]);
-                        Log.d(TAG, "SELECT time, value FROM geo where time>=" + (long) (setSensorTime1 - (long) 5 * 1E9));
+                      //  Log.d(TAG, "SELECT time, value FROM geo where time>=" + (long) (setSensorTime1 - (long) 5 * 1E9));
                         queryResult = influxDB.query(new Query("SELECT time, value FROM device_frmpayload_data_" + sensor_table + "_" + index + "_x  WHERE time>=" + (setSensorTime1 - (long) (notSensor1DataCount * time_period * Math.pow(10, 9))), databasename, true));
                     }
                     Log.d(TAG, df.format(new Date(Calendar.getInstance().getTime().getTime())) + " / " + notSensor1DataCount);
@@ -306,12 +317,12 @@ public class Influx_Java {
                 else
                 if(voids[0]==2) {//y
                     if (setSensorTime2 == 0) {
-                        Log.d(TAG, "탐색 실행");
+                       // Log.d(TAG, "탐색 실행");
                         setSensorTime2 = (long) (voids[1]);
-                        Log.d(TAG, "SELECT time, value FROM device_frmpayload_data_" + sensor_table + "_" + index + "_y where time>=" + (long) (setSensorTime2 - period) + " / " + setSensorTime2 + " / " + period);
+                       // Log.d(TAG, "SELECT time, value FROM device_frmpayload_data_" + sensor_table + "_" + index + "_y where time>=" + (long) (setSensorTime2 - period) + " / " + setSensorTime2 + " / " + period);
                         queryResult = influxDB.query(new Query("SELECT time, value FROM device_frmpayload_data_" + sensor_table + "_" + index + "_y  where time>=" + (setSensorTime2 - period), databasename, true));
                     } else {
-                        Log.d(TAG, "탐색 중");
+                      //  Log.d(TAG, "탐색 중");
                         setSensorTime2 = (long) (voids[1]);
                         queryResult = influxDB.query(new Query("SELECT time, value FROM device_frmpayload_data_" + sensor_table + "_" + index + "_y  WHERE time>=" + (setSensorTime2 - (long) (notSensor1DataCount * time_period * Math.pow(10, 9))), databasename, true));
                     }
@@ -321,12 +332,12 @@ public class Influx_Java {
                 else
                 if(voids[0]==3) {//y
                     if (setSensorTime3 == 0) {
-                        Log.d(TAG, "탐색 실행");
+                       // Log.d(TAG, "탐색 실행");
                         setSensorTime3 = (long) (voids[1]);
-                        Log.d(TAG, "SELECT time, value FROM device_frmpayload_data_" + sensor_table + "_" + index + "_y where time>=" + (long) (setSensorTime3 - period) + " / " + setSensorTime3 + " / " + period);
+                      //  Log.d(TAG, "SELECT time, value FROM device_frmpayload_data_" + sensor_table + "_" + index + "_y where time>=" + (long) (setSensorTime3 - period) + " / " + setSensorTime3 + " / " + period);
                         queryResult = influxDB.query(new Query("SELECT time, value FROM device_frmpayload_data_" + sensor_table + "_" + index + "_z  where time>=" + (setSensorTime3 - period), databasename, true));
                     } else {
-                        Log.d(TAG, "탐색 중");
+                      //  Log.d(TAG, "탐색 중");
                         setSensorTime3 = (long) (voids[1]);
                         queryResult = influxDB.query(new Query("SELECT time, value FROM device_frmpayload_data_" + sensor_table + "_" + index + "_z  WHERE time>=" + (setSensorTime3 - (long) (notSensor1DataCount * time_period * Math.pow(10, 9))), databasename, true));
                     }
